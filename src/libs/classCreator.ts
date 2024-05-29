@@ -1,13 +1,17 @@
-type ClassType = {
+export type ClassType = {
     name: string;
     ancestors: string[];
 }[];
 
-type InstanceMap = {
+export type InstanceMap = {
     [key: string]: string;
 };
 
-class Sneps {
+export type InstanceByClassnames = {
+    [key: string]: string[];
+};
+
+export class Sneps {
     private classes: ClassType;
     private instances: InstanceMap;
 
@@ -35,6 +39,15 @@ class Sneps {
 
     private findClassByName(name: string): { name: string; ancestors: string[] } | undefined {
         for (let c of this.classes) {
+            if (c.name === name) {
+                return c;
+            }
+        }
+        return undefined;
+    }
+
+    private static findClassByName(name: string, classes: ClassType): { name: string; ancestors: string[] } | undefined {
+        for (let c of classes) {
             if (c.name === name) {
                 return c;
             }
@@ -73,6 +86,42 @@ class Sneps {
 
         return false;
     }
+
+    // Check if the given class1 is a descendant of the class2 in classes
+    static isDescendant(class1: string, class2: string, classes: ClassType): boolean {
+        // Use Depth-First Search (DFS) to check for ancestor relationship
+        const stack: string[] = [class1];
+        const visited: { [key: string]: boolean } = {};
+
+        while (stack.length > 0) {
+            const currentClass = stack.pop();
+
+            if (currentClass === class2) {
+                return true;
+            }
+
+            if (currentClass && !visited[currentClass]) {
+                visited[currentClass] = true;
+
+                const currentClassData = Sneps.findClassByName(currentClass, classes);
+                if (currentClassData) {
+                    stack.push(...currentClassData.ancestors);
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // get instances by classnames
+    getInstances() {
+        const res: InstanceByClassnames = {} // array of instances of the class
+        for (const [instance, classname] of Object.entries(this.instances)) {
+            res[classname] = (res[classname] ?? [])
+            res[classname].push(instance)
+        }
+        return res
+    }
 }
 
 // const classList: ClassType = [
@@ -91,28 +140,28 @@ class Sneps {
 // console.log(sneps.isDescendant('Rex', 'Bird')); // false
 
 
-const classList: ClassType = [
-    { name: 'Animals', ancestors: [] },
-    { name: 'Dogs', ancestors: ['Animals'] },
-    { name: 'Sheperds', ancestors: ['Dogs'] },
-    { name: 'Cats', ancestors: ['Животные'] },
-    { name: 'DogCats', ancestors: ['Cats', 'Dogs'] }
-];
+// const classList: ClassType = [
+//     { name: 'Animals', ancestors: [] },
+//     { name: 'Dogs', ancestors: ['Animals'] },
+//     { name: 'Sheperds', ancestors: ['Dogs'] },
+//     { name: 'Cats', ancestors: ['Животные'] },
+//     { name: 'DogCats', ancestors: ['Cats', 'Dogs'] }
+// ];
 
-const sneps = new Sneps(classList);
+// const sneps = new Sneps(classList);
 
-sneps.instance('Dogs', 'Sharik')
+// sneps.instance('Dogs', 'Sharik')
 
-console.log(sneps.isDescendant('Sharik', 'Animals')) // true
-console.log(sneps.isDescendant('Sharik', 'Dogs')) // true
-console.log(sneps.isDescendant('Sharik', 'Cats')) // false
+// console.log(sneps.isDescendant('Sharik', 'Animals')) // true
+// console.log(sneps.isDescendant('Sharik', 'Dogs')) // true
+// console.log(sneps.isDescendant('Sharik', 'Cats')) // false
 
-sneps.instance('DogCats', 'DogCat')
+// sneps.instance('DogCats', 'DogCat')
 
-console.log(sneps.isDescendant('DogCat', 'Animals')) // true
-console.log(sneps.isDescendant('DogCat', 'Dogs')) // true
-console.log(sneps.isDescendant('DogCat', 'Cats')) // true
-console.log(sneps.isDescendant('DogCat', 'DogCats')) // true
+// console.log(sneps.isDescendant('DogCat', 'Animals')) // true
+// console.log(sneps.isDescendant('DogCat', 'Dogs')) // true
+// console.log(sneps.isDescendant('DogCat', 'Cats')) // true
+// console.log(sneps.isDescendant('DogCat', 'DogCats')) // true
 
-// Нужно реагировать на некорректные запросы
-console.log(sneps.isDescendant('Unknown', 'Animals')) // exception
+// // // Нужно реагировать на некорректные запросы
+// console.log(sneps.isDescendant('Unknown', 'Animals')) // exception
