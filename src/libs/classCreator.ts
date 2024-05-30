@@ -1,6 +1,7 @@
 export type ClassType = {
     name: string;
     ancestors: string[];
+    attributes: string[];
 }[];
 
 export type InstanceMap = {
@@ -21,7 +22,7 @@ export class Sneps {
     }
 
     // Creates a new instance with instancename of class classname
-    instance(classname: string, instancename: string) {
+    instance(instancename: string, attributes: string[]) {
         // Check if the classname exists in the classes list
         let classExists = false;
         for (let c of this.classes) {
@@ -124,44 +125,31 @@ export class Sneps {
     }
 }
 
-// const classList: ClassType = [
-//     { name: 'Animal', ancestors: [] },
-//     { name: 'Mammal', ancestors: ['Animal'] },
-//     { name: 'Bird', ancestors: ['Animal'] },
-//     { name: 'Dog', ancestors: ['Mammal'] },
-//     { name: 'Cat', ancestors: ['Mammal'] }
-// ];
+const classList: ClassType = [
+    { name: 'Животное', ancestors: [], attributes: ['Дышит'] },
+    { name: 'Млекопитающее', ancestors: ['Животное'], attributes: ['Дышит', '4 ноги'] },
+    { name: 'Человек', ancestors: ['Млекопитающее'], attributes: ['Дышит', '4 ноги', 'Прямоходящий'] },
+    { name: 'Кот', ancestors: ['Млекопитающее'], attributes: ['Дышит', '4 ноги', 'Есть хвост']}
+];
 
-// const sneps = new Sneps(classList);
+const sneps = new Sneps(classList);
 
-// sneps.instance('Dog', 'Rex');
-// console.log(sneps.isDescendant('Rex', 'Mammal')); // true
-// console.log(sneps.isDescendant('Rex', 'Animal')); // true
-// console.log(sneps.isDescendant('Rex', 'Bird')); // false
+// Теперь пробрасываем атрибуты
+sneps.instance('Аристотель', ['Дышит', '4 ноги', 'Прямоходящий', 'Лысый']);
 
+// Проверяем принадлежность классу именно сравнивая атрибуты инстанса и атрибуты класса
+console.log(sneps.isDescendant('Аристотель', 'Человек')); // true
+console.log(sneps.isDescendant('Аристотель', 'Млекопитающее')); // true
+console.log(sneps.isDescendant('Аристотель', 'Кот')); // false
 
-// const classList: ClassType = [
-//     { name: 'Animals', ancestors: [] },
-//     { name: 'Dogs', ancestors: ['Animals'] },
-//     { name: 'Sheperds', ancestors: ['Dogs'] },
-//     { name: 'Cats', ancestors: ['Животные'] },
-//     { name: 'DogCats', ancestors: ['Cats', 'Dogs'] }
-// ];
+sneps.instance('Мутант Барсик', ['Дышит', '4 ноги'])
+console.log(sneps.isDescendant('Мутант Барсик', 'Кот')) // false
+console.log(sneps.isDescendant('Мутант Барсик', 'Млекопитающее')) // true
 
-// const sneps = new Sneps(classList);
+sneps.instance('Мутант Барсик', ['Дышит', '4 ноги', 'Есть хвост', 'Очень волосатый']) // Добавили атрибут к существующей сущности
+console.log(sneps.isDescendant('Мутант Барсик', 'Кот')) // true
+console.log(sneps.isDescendant('Мутант Барсик', 'Человек')) // false
 
-// sneps.instance('Dogs', 'Sharik')
-
-// console.log(sneps.isDescendant('Sharik', 'Animals')) // true
-// console.log(sneps.isDescendant('Sharik', 'Dogs')) // true
-// console.log(sneps.isDescendant('Sharik', 'Cats')) // false
-
-// sneps.instance('DogCats', 'DogCat')
-
-// console.log(sneps.isDescendant('DogCat', 'Animals')) // true
-// console.log(sneps.isDescendant('DogCat', 'Dogs')) // true
-// console.log(sneps.isDescendant('DogCat', 'Cats')) // true
-// console.log(sneps.isDescendant('DogCat', 'DogCats')) // true
-
-// // // Нужно реагировать на некорректные запросы
-// console.log(sneps.isDescendant('Unknown', 'Animals')) // exception
+sneps.instance('Мутант Барсик', ['Дышит', 'Есть хвост', 'Очень волосатый']) // Убрали атрибут
+console.log(sneps.isDescendant('Мутант Барсик', 'Кот')) // false
+console.log(sneps.isDescendant('Мутант Барсик', 'Животное')) // true
