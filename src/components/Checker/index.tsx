@@ -35,6 +35,7 @@ export const Checker = (props: CheckerProps) => {
         const res: React.MouseEventHandler<HTMLButtonElement> = e => {
             e.preventDefault()
             const attrName = (document.querySelector(attrSelector) as null | HTMLInputElement)?.value
+            console.log(attrSelector)
             if (!attrName) {
                 return
             }
@@ -79,8 +80,8 @@ export const Checker = (props: CheckerProps) => {
                                     ))}
                                     </ul> : null}
                                     <form>
-                                        <input name='name' placeholder='Говорит по-гречески' title='Добавить атрибут' id={'instance-attribute-input-for-' + inst.name}/>
-                                        <button onClick={addAttr('#instance-attribute-input-for-' + inst.name, inst)}>Добавить атрибут</button>
+                                        <input name='name' placeholder='Говорит по-гречески' title='Добавить атрибут' id={'instance-attribute-input-for-' + inst.name + '-' + classname.replace(' ', '')}/>
+                                        <button onClick={addAttr('#instance-attribute-input-for-' + inst.name + '-' + classname.replace(' ', ''), inst)}>Добавить атрибут</button>
                                     </form>
                                 </li>
                             ))}
