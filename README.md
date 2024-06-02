@@ -1,6 +1,6 @@
 Проект сделан на [Next.js](https://nextjs.org/) с использованием [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-Приложение залито с автодеплоем на [Vercel](https://chapecker-next.vercel.app/)
+Приложение залито на [Netlify](https://sneps-lr2.netlify.app/)
 
 ## Запуск
 
