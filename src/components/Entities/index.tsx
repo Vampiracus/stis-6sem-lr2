@@ -21,6 +21,7 @@ export const Entities = (props: EntitiesProps) => {
         const newClass: ClassType[number] = {
             name: newClassName as string,
             ancestors: [],
+            attributes: []
         }
         setClasses(classes => [...classes, newClass])
         setnewClassName("")
@@ -46,12 +47,44 @@ export const Entities = (props: EntitiesProps) => {
         }
     }, [setClasses])
 
+    const addAttr = useCallback((inputSelector: string, childName: string) => {
+        return (e: any) => {
+            e.preventDefault()
+            const element = document.querySelector(inputSelector) as null | HTMLSelectElement
+            if (!element) {
+                return
+            }
+            const name = element.value
+            if (name === '') {
+                return
+            }
+            setClasses(classes => [...classes].map(cl => {
+                if (cl.name === childName && !cl.attributes.includes(name)) {
+                    cl.attributes.push(name)
+                }
+                return cl
+            }) )
+        }
+    }, [setClasses])
+
     return (
         <div style={{ textAlign: 'unset' }}>
             <ul>
                 { classes.map(cl => (
                     <li key={cl.name}>
+
                         <span>{cl.name}</span>
+                        <h5 style={{ margin: 2 }}>{ cl.attributes.length ? 'Атрибуты:' : 'Атрибуты не заданы'}</h5>
+                        { cl.attributes.length && <ul>
+                            { cl.attributes.map(a => (
+                                <li key={a}><span>{a}</span></li>
+                            ))}
+                        </ul> || null}
+                        {!disabled && <form>
+                            <input name='attribute' placeholder='Говорит по-гречески' id={'attribute-input-for-' + cl.name}/>
+                            <button onClick={addAttr('#attribute-input-for-' + cl.name, cl.name)}>Добавить новый атрибут</button>
+                        </form> || null}
+
                         <h5 style={{ margin: 2 }}>{ cl.ancestors.length ? 'Наследуется от:' : 'Базовые классы не заданы'}</h5>
                         { cl.ancestors.length && <ul>
                             { cl.ancestors.map(ancestor => (
@@ -63,10 +96,10 @@ export const Entities = (props: EntitiesProps) => {
                                 <option disabled>{selectBaseClass}</option>
                                 <option disabled>Создайте новые классы, чтобы расширить здесь выбор</option>
                                 { classes.map(ancestor => (
-                                    Sneps.isDescendant(cl.name, ancestor.name, classes) ? null : <option key={ancestor.name}>{ancestor.name}</option>
-                                )) }
-                            </select>
-                            <button onClick={addAncesor('#ancestor-input-for-' + cl.name, cl.name)}>Добавить новый базовый класс</button>
+                                        Sneps.isDescendant(cl.name, ancestor.name, classes) ? null : <option key={ancestor.name}>{ancestor.name}</option>
+                                    )) }
+                                </select>
+                                <button onClick={addAncesor('#ancestor-input-for-' + cl.name, cl.name)}>Добавить новый базовый класс</button>
                         </form> || null}
                     </li>
                 )) }

@@ -1,17 +1,14 @@
-import { ClassType, Sneps, InstanceByClassnames } from '@/libs/classCreator'
-import React, { useRef, useState } from 'react'
+import { ClassType, Sneps, InstanceByClassnames, InstanceMap } from '@/libs/classCreator'
+import React, { useCallback, useRef, useState } from 'react'
 
 export interface CheckerProps {
     classes: ClassType
 }
 
-const selectClass = 'Выберите класс сущности'
-
 export const Checker = (props: CheckerProps) => {
     const { classes } = props
     
     const sneps = useRef(new Sneps(classes))
-    const classSelect = useRef<null | HTMLSelectElement>(null)
     const checkClassRef = useRef<null | HTMLSelectElement>(null)
     const checkInstanceRef = useRef<null | HTMLSelectElement>(null)
 
@@ -21,58 +18,91 @@ export const Checker = (props: CheckerProps) => {
 
     const addInstance: React.MouseEventHandler<HTMLButtonElement> = e => {
         e.preventDefault()
-        if (!classSelect.current || classSelect.current.value === selectClass) {
-            return
-        }
-        sneps.current.instance(classSelect.current.value, instanceName)
+        sneps.current.instance(instanceName, [])
         setinstances(sneps.current.getInstances())
         setinstanceName("")
     }
 
-    const check: React.MouseEventHandler<HTMLButtonElement> = e => {
-        e.preventDefault()
-        if (!checkInstanceRef.current || !checkClassRef.current) {
-            return
+    // const check: React.MouseEventHandler<HTMLButtonElement> = e => {
+    //     e.preventDefault()
+    //     if (!checkInstanceRef.current || !checkClassRef.current) {
+    //         return
+    //     }
+    //     setisAncestor(sneps.current.isDescendant(checkInstanceRef.current.value, checkClassRef.current.value))
+    // }
+
+    const addAttr = useCallback((attrSelector: string, instance: { name: string, attributes: string[] }) => {
+        const res: React.MouseEventHandler<HTMLButtonElement> = e => {
+            e.preventDefault()
+            const attrName = (document.querySelector(attrSelector) as null | HTMLInputElement)?.value
+            if (!attrName) {
+                return
+            }
+            if (!instance.attributes.includes(attrName)) {
+                instance.attributes.push(attrName)
+            }
+            sneps.current.instance(instance.name, [...instance.attributes])
+            setinstances(sneps.current.getInstances())
         }
-        setisAncestor(sneps.current.isDescendant(checkInstanceRef.current.value, checkClassRef.current.value))
-    }
+        return res
+    }, [])
+
+    const rmAttr = useCallback((attrName: string, instance: { name: string, attributes: string[] }) => {
+        const res: React.MouseEventHandler<HTMLButtonElement> = e => {
+            e.preventDefault()
+            instance.attributes = instance.attributes.filter(a => a !== attrName)
+            sneps.current.instance(instance.name, [...instance.attributes])
+            setinstances(sneps.current.getInstances())
+        }
+        return res
+    }, [])
 
     return (
         <div>
             <h3>Сущности</h3>
+            
             <ul>
                 { Object.entries(instances).map(([classname, classinstances]) => (
                     <li key={classname}>
                         <span>{classname}</span>
                         <ul>
-                            {classinstances.map(i => (
-                                <li key={i}>{i}</li>
+                            {classinstances.map(inst => (
+                                <li key={inst.name}>
+                                    <span>{inst.name}</span> <br/>
+                                    <span>Атрибуты {inst.attributes.length ? ':' : 'не заданы'}</span>
+                                    { inst.attributes.length ? <ul>
+                                        {inst.attributes.map(attr => (
+                                        <li key={attr}>
+                                            <span>{attr}</span>
+                                            <button style={{marginLeft: 10}} onClick={rmAttr(attr, inst)}>x</button>
+                                        </li>
+                                    ))}
+                                    </ul> : null}
+                                    <form>
+                                        <input name='name' placeholder='Говорит по-гречески' title='Добавить атрибут' id={'instance-attribute-input-for-' + inst.name}/>
+                                        <button onClick={addAttr('#instance-attribute-input-for-' + inst.name, inst)}>Добавить атрибут</button>
+                                    </form>
+                                </li>
                             ))}
                         </ul>
                     </li>
                 ))}
             </ul>
+
             <h4>Добавить сущность</h4>
             <form>
                 <input name='name' placeholder='Аристотель' title='Введите имя сущности' autoFocus value={instanceName} onChange={e => setinstanceName(e.target.value)}/>
                 <br/>
-                <select defaultValue={selectClass} ref={classSelect}>
-                    <option disabled>{selectClass}</option>
-                    { classes.map(cl => (
-                        <option key={cl.name}>
-                            {cl.name}
-                        </option>
-                    ))}
-                </select>
                 <button onClick={addInstance}>Добавить сущность!</button>
             </form>
-            <h4>Проверить сущность</h4>
+
+            {/* <h4>Проверить сущность</h4>
             <form>
                 <select ref={checkInstanceRef} onChange={() => setisAncestor(null)}>
-                    { Object.entries(instances).map(([classname, classinstances]) => (
+                    { Object.entries(instances).map(([classname, classinstances], index, self) => (
                         <React.Fragment key={classname}>
                             {classinstances.map(i => (
-                                <option key={i}>{i}</option>
+                                self.findIndex(t => t[1].find(x => x.name === i.name)) === index ? <option key={i.name}>{i.name}</option> : null
                             ))}
                         </React.Fragment>
                     ))}
@@ -83,7 +113,7 @@ export const Checker = (props: CheckerProps) => {
                     ))}
                 </select>
                 <button onClick={check}>Проверить!</button>
-            </form>
+            </form> */}
             { isAncestor === null ? null : <p style={{ width: 490 }}>
                 {isAncestor 
                     ? `Одим из предков класса сущности "${checkInstanceRef.current?.value}" является класс "${checkClassRef.current?.value}"`
